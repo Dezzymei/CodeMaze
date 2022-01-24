@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { WALL, UP, DOWN, LEFT, RIGHT } from "../../gameLogic/types";
 
@@ -29,9 +29,14 @@ export default function Level() {
   const levelData = allLevels[levelId - 1].maze;
   const finishPosition = allLevels[levelId - 1].finishPosition;
 
-  const [instructions, setInstructions] = useState([]);
+  const [instructions, _setInstructions] = useState([]);
+  const instructionsRef = useRef(instructions);
+  const setInstructions = (newInstructions) => {
+    instructionsRef.current = newInstructions;
+    _setInstructions(newInstructions);
+  };
   const [currentPosition, setCurrentPosition] = useState([0, 0]);
-  const [currentInstruction, setCurrentInstruction] = useState(-1);
+  const [currentInstructionIndex, setCurrentInstructionIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [didWin, setDidWin] = useState(false);
   const [visited, setVisited] = useState([]); // TODO use!
@@ -43,10 +48,36 @@ export default function Level() {
     { direction: RIGHT, symbol: "➡️" },
   ];
 
+  useEffect(() => {
+    window.addEventListener("keydown", (e) => {
+      let newInstruction;
+      switch (e.key) {
+        case "ArrowLeft":
+          newInstruction = LEFT;
+          break;
+        case "ArrowRight":
+          newInstruction = RIGHT;
+          break;
+        case "ArrowUp":
+          newInstruction = UP;
+          break;
+        case "ArrowDown":
+          newInstruction = DOWN;
+          break;
+      }
+      const newInstructionItem = possibleInstructions.find(
+        (instruction) => instruction.direction === newInstruction
+      );
+      if (newInstruction && newInstructionItem) {
+        setInstructions(instructionsRef.current.concat(newInstructionItem));
+      }
+    });
+  }, []);
+
   const reset = () => {
     setCurrentPosition([0, 0]);
     setInstructions([]);
-    setCurrentInstruction(-1);
+    setCurrentInstructionIndex(-1);
   };
 
   const play = async () => {
@@ -58,7 +89,7 @@ export default function Level() {
         return;
       }
       await sleep(delay);
-      setCurrentInstruction(i);
+      setCurrentInstructionIndex(i);
       const currentInstruction = instructions[i];
       switch (currentInstruction.direction) {
         case UP:
@@ -131,7 +162,7 @@ export default function Level() {
 
   const restart = () => {
     setCurrentPosition([0, 0]);
-    setCurrentInstruction(-1);
+    setCurrentInstructionIndex(-1);
     return false;
   };
 
@@ -166,9 +197,9 @@ export default function Level() {
               key={instructionIndex}
               style={{
                 backgroundColor:
-                  currentInstruction === instructionIndex
+                  currentInstructionIndex === instructionIndex
                     ? "green"
-                    : currentInstruction > instructionIndex
+                    : currentInstructionIndex > instructionIndex
                     ? "black"
                     : "white",
               }}
