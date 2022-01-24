@@ -12,7 +12,9 @@ export default function Home() {
         <h1 className="title">Welcome to Code Maze</h1>
 
         <p className="description">
-          <a href="/level/1">Play</a>
+          <h2>
+            <a href="/level/1">Play</a>
+          </h2>
         </p>
       </main>
 

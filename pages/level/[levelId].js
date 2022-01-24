@@ -1,10 +1,13 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { WALL, FREE, UP, DOWN, LEFT, RIGHT } from "../../gameLogic/types";
+import { WALL, UP, DOWN, LEFT, RIGHT } from "../../gameLogic/types";
 
-const cellWidth = 40;
+import { allLevels } from "../../gameLogic/levelData";
+
+const cellWidth = 50;
+const delay = 1000;
 
 const sleep = (t) => new Promise((s) => setTimeout(s, t));
 
@@ -12,18 +15,26 @@ export default function Level() {
   const router = useRouter();
   const { levelId } = router.query;
 
+  if (!levelId) {
+    return <>Loading...</>;
+  }
+
+  if (allLevels.length < levelId) {
+    return (
+      <>
+        No such level. <a href="/">Return Home</a>.
+      </>
+    );
+  }
+  const levelData = allLevels[levelId - 1].maze;
+  const finishPosition = allLevels[levelId - 1].finishPosition;
+
   const [instructions, setInstructions] = useState([]);
   const [currentPosition, setCurrentPosition] = useState([0, 0]);
-  const [finishPosition, setFinishPosition] = useState([3, 2]);
   const [currentInstruction, setCurrentInstruction] = useState(-1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [didWin, setDidWin] = useState(false);
   const [visited, setVisited] = useState([]); // TODO use!
-
-  const levelData = [
-    [FREE, FREE, FREE, WALL],
-    [WALL, WALL, FREE, WALL],
-    [WALL, WALL, FREE, FREE],
-    [WALL, WALL, WALL, WALL],
-  ];
 
   const possibleInstructions = [
     { direction: UP, symbol: "⬆️" },
@@ -39,14 +50,21 @@ export default function Level() {
   };
 
   const play = async () => {
+    setIsPlaying(true);
     let newPosition = currentPosition;
+    let isPlaying = true;
     for (let i = 0; i < instructions.length; i++) {
+      if (!isPlaying) {
+        return;
+      }
+      await sleep(delay);
       setCurrentInstruction(i);
       const currentInstruction = instructions[i];
       switch (currentInstruction.direction) {
         case UP:
           if (newPosition[1] === 0) {
             alert("Hit the top!");
+            isPlaying = restart();
           } else {
             newPosition = [newPosition[0], newPosition[1] - 1];
             setCurrentPosition(newPosition);
@@ -55,6 +73,7 @@ export default function Level() {
         case DOWN:
           if (newPosition[1] === levelData[0].length - 1) {
             alert("Hit the bottom!");
+            isPlaying = restart();
           } else {
             newPosition = [newPosition[0], newPosition[1] + 1];
             setCurrentPosition(newPosition);
@@ -63,6 +82,7 @@ export default function Level() {
         case RIGHT:
           if (newPosition[0] === levelData.length - 1) {
             alert("Hit the right side!");
+            isPlaying = restart();
           } else {
             newPosition = [newPosition[0] + 1, newPosition[1]];
             setCurrentPosition(newPosition);
@@ -71,6 +91,7 @@ export default function Level() {
         case LEFT:
           if (newPosition[0] === 0) {
             alert("Hit the left side!");
+            isPlaying = restart();
           } else {
             newPosition = [newPosition[0] - 1, newPosition[1]];
             setCurrentPosition(newPosition);
@@ -78,27 +99,48 @@ export default function Level() {
           break;
       }
 
-      if (levelData[newPosition[1]][newPosition[0]] === WALL) {
-        alert("You hit a wall!");
+      if (didHitWall(newPosition) || isAtFinish(newPosition)) {
+        isPlaying = false;
       }
 
-      await sleep(2000);
-
-      if (
-        newPosition[0] === finishPosition[0] &&
-        newPosition[1] === finishPosition[1]
-      ) {
-        alert("You won!");
-      }
+      setIsPlaying(isPlaying);
     }
+    setIsPlaying(false);
+  };
+
+  const didHitWall = (position) => {
+    return levelData[position[1]][position[0]] === WALL;
+  };
+
+  const isAtFinish = (position) => {
+    return (
+      position[0] === finishPosition[0] && position[1] === finishPosition[1]
+    );
+  };
+
+  useEffect(() => {
+    if (didHitWall(currentPosition)) {
+      alert("You hit a wall!");
+      restart();
+    }
+    if (isAtFinish(currentPosition)) {
+      setDidWin(true);
+      alert("You won!");
+    }
+  }, [currentPosition]);
+
+  const restart = () => {
+    setCurrentPosition([0, 0]);
+    setCurrentInstruction(-1);
+    return false;
   };
 
   const displayPossibleInstructions = (possibleInstructions) => {
     return (
       <div style={{ fontSize: "xx-large" }}>
-        {possibleInstructions.map((instruction) => {
+        {possibleInstructions.map((instruction, instructionIndex) => {
           return (
-            <>
+            <span key={instructionIndex}>
               <span
                 onClick={() => {
                   setInstructions(instructions.concat(instruction));
@@ -107,7 +149,7 @@ export default function Level() {
                 {instruction.symbol}
               </span>
               &nbsp;
-            </>
+            </span>
           );
         })}
       </div>
@@ -117,9 +159,11 @@ export default function Level() {
   const displayInstructions = (instructions) => {
     return (
       <div style={{ fontSize: "xx-large" }}>
+        {instructions.length === 0 && <span>&nbsp;</span>}
         {instructions.map((instruction, instructionIndex) => {
           return (
             <span
+              key={instructionIndex}
               style={{
                 backgroundColor:
                   currentInstruction === instructionIndex
@@ -158,10 +202,11 @@ export default function Level() {
         <tbody>
           {levelData.map((row, yIndex) => {
             return (
-              <tr>
+              <tr key={yIndex}>
                 {row.map((cell, xIndex) => {
                   return (
                     <td
+                      key={`${xIndex},${yIndex}`}
                       style={{
                         border: "1px solid",
                         background:
@@ -198,8 +243,11 @@ export default function Level() {
         <title>Code Maze | Level {levelId}</title>
       </Head>
       <h1>Level {levelId}</h1>
-      <h2>Instructions</h2>
-      <span style={{ fontSize: "xx-large" }} onClick={() => play()}>
+      <span
+        style={{ fontSize: "xx-large" }}
+        className={isPlaying ? "disabled" : " link"}
+        onClick={() => play()}
+      >
         ▶️
       </span>
 
@@ -211,6 +259,23 @@ export default function Level() {
       {constructLevel(levelData)}
       <hr />
       {displayPossibleInstructions(possibleInstructions)}
+      <hr />
+      {didWin && (
+        <h1 style={{ textAlign: "center" }}>
+          <a href={`/level/${parseInt(levelId) + 1}`}>Next Level!</a>
+        </h1>
+      )}
+
+      <style jsx>{`
+        .disabled {
+          opacity: 0.4;
+          grayscale: true;
+        }
+
+        .link {
+          cursor: pointer;
+        }
+      `}</style>
     </>
   );
 }
