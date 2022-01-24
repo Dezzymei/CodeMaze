@@ -45,6 +45,7 @@ export default function Level() {
   const [currentInstructionIndex, setCurrentInstructionIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [didWin, setDidWin] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [visited, setVisited] = useState([]); // TODO use!
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function Level() {
     }
     if (isAtFinish(currentPosition)) {
       setDidWin(true);
+      setShowConfetti(true);
       setModalContent("You won!");
     }
   }, [currentPosition]);
@@ -97,12 +99,14 @@ export default function Level() {
   ];
 
   const reset = () => {
+    setShowConfetti(false);
     setCurrentPosition([0, 0]);
     setInstructions([]);
     setCurrentInstructionIndex(-1);
   };
 
   const _play = async () => {
+    setShowConfetti(false);
     setIsPlaying(true);
     let newPosition = currentPosition;
     let isPlaying = true;
@@ -315,9 +319,9 @@ export default function Level() {
         {didWin && (
           <h1 style={{ textAlign: "center" }}>
             <a href={`/level/${parseInt(levelId) + 1}`}>Next Level!</a>
-            <Confetti />
           </h1>
         )}
+        {showConfetti && <Confetti />}
 
         <style jsx>{`
           .disabled {
