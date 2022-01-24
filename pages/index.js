@@ -11,7 +11,9 @@ export default function Home() {
       <main>
         <h1 className="title">Welcome to Code Maze</h1>
 
-        <p className="description">Play</p>
+        <p className="description">
+          <a href="/level/1">Play</a>
+        </p>
       </main>
 
       <footer>&copy; Robert Desmond {new Date().getFullYear()}</footer>
