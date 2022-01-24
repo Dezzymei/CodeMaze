@@ -14,21 +14,18 @@ const sleep = (t) => new Promise((s) => setTimeout(s, t));
 
 export default function Level() {
   const router = useRouter();
+
   const { levelId } = router.query;
+  const [currentPosition, setCurrentPosition] = useState([0, 0]);
 
-  if (!levelId) {
-    return <>Loading...</>;
-  }
-
-  if (allLevels.length < levelId) {
-    return (
-      <>
-        No such level. <a href="/">Return Home</a>.
-      </>
-    );
-  }
-  const levelData = allLevels[levelId - 1].maze;
-  const finishPosition = allLevels[levelId - 1].finishPosition;
+  const levelData =
+    levelId && allLevels.length >= levelId
+      ? allLevels[levelId - 1].maze
+      : [[], []];
+  const finishPosition =
+    levelId && allLevels.length >= levelId
+      ? allLevels[levelId - 1].finishPosition
+      : [1, 1];
 
   const [instructions, _setInstructions] = useState([]);
   const instructionsRef = useRef(instructions);
@@ -36,18 +33,10 @@ export default function Level() {
     instructionsRef.current = newInstructions;
     _setInstructions(newInstructions);
   };
-  const [currentPosition, setCurrentPosition] = useState([0, 0]);
   const [currentInstructionIndex, setCurrentInstructionIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [didWin, setDidWin] = useState(false);
   const [visited, setVisited] = useState([]); // TODO use!
-
-  const possibleInstructions = [
-    { direction: UP, symbol: "⬆️" },
-    { direction: DOWN, symbol: "⬇️" },
-    { direction: LEFT, symbol: "⬅️" },
-    { direction: RIGHT, symbol: "➡️" },
-  ];
 
   useEffect(() => {
     window.addEventListener("keydown", (e) => {
@@ -79,6 +68,24 @@ export default function Level() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (didHitWall(currentPosition)) {
+      alert("You hit a wall!");
+      restart();
+    }
+    if (isAtFinish(currentPosition)) {
+      setDidWin(true);
+      alert("You won!");
+    }
+  }, [currentPosition]);
+
+  const possibleInstructions = [
+    { direction: UP, symbol: "⬆️" },
+    { direction: DOWN, symbol: "⬇️" },
+    { direction: LEFT, symbol: "⬅️" },
+    { direction: RIGHT, symbol: "➡️" },
+  ];
 
   const reset = () => {
     setCurrentPosition([0, 0]);
@@ -157,17 +164,6 @@ export default function Level() {
       position[0] === finishPosition[0] && position[1] === finishPosition[1]
     );
   };
-
-  useEffect(() => {
-    if (didHitWall(currentPosition)) {
-      alert("You hit a wall!");
-      restart();
-    }
-    if (isAtFinish(currentPosition)) {
-      setDidWin(true);
-      alert("You won!");
-    }
-  }, [currentPosition]);
 
   const restart = () => {
     setCurrentPosition([0, 0]);
