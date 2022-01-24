@@ -132,32 +132,39 @@ export default function Level() {
     }
     return (
       <table>
-        {levelData.map((row, yIndex) => {
-          return (
-            <tr>
-              {row.map((cell, xIndex) => {
-                return (
-                  <td
-                    style={{
-                      border: "1px solid",
-                      background:
-                        xIndex === currentPosition[0] &&
-                        yIndex === currentPosition[1]
-                          ? "green"
-                          : cell === WALL
-                          ? "red"
-                          : "white",
-                      width: cellWidth,
-                      height: cellWidth,
-                    }}
-                  >
-                    &nbsp;
-                  </td>
-                );
-              })}
-            </tr>
-          );
-        })}
+        <tbody>
+          {levelData.map((row, yIndex) => {
+            return (
+              <tr>
+                {row.map((cell, xIndex) => {
+                  return (
+                    <td
+                      style={{
+                        border: "1px solid",
+                        background:
+                          xIndex === currentPosition[0] &&
+                          yIndex === currentPosition[1]
+                            ? "green"
+                            : cell === WALL
+                            ? "red"
+                            : "white",
+                        width: cellWidth,
+                        height: cellWidth,
+                        fontSize: "xx-large",
+                        textAlign: "center",
+                      }}
+                    >
+                      {xIndex === currentPosition[0] &&
+                      yIndex === currentPosition[1]
+                        ? "🤖"
+                        : " "}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
       </table>
     );
   };
