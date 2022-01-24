@@ -14,12 +14,15 @@ export default function Level() {
 
   const [instructions, setInstructions] = useState([]);
   const [currentPosition, setCurrentPosition] = useState([0, 0]);
-  const [currentInstruction, setCurrentInstruction] = useState();
-  const [visited, setVisited] = useState([]);
+  const [finishPosition, setFinishPosition] = useState([3, 2]);
+  const [currentInstruction, setCurrentInstruction] = useState(-1);
+  const [visited, setVisited] = useState([]); // TODO use!
 
   const levelData = [
-    [WALL, FREE],
-    [WALL, WALL],
+    [FREE, FREE, FREE, WALL],
+    [WALL, WALL, FREE, WALL],
+    [WALL, WALL, FREE, FREE],
+    [WALL, WALL, WALL, WALL],
   ];
 
   const possibleInstructions = [
@@ -28,6 +31,12 @@ export default function Level() {
     { direction: LEFT, symbol: "⬅️" },
     { direction: RIGHT, symbol: "➡️" },
   ];
+
+  const reset = () => {
+    setCurrentPosition([0, 0]);
+    setInstructions([]);
+    setCurrentInstruction(-1);
+  };
 
   const play = async () => {
     let newPosition = currentPosition;
@@ -72,7 +81,15 @@ export default function Level() {
       if (levelData[newPosition[1]][newPosition[0]] === WALL) {
         alert("You hit a wall!");
       }
+
       await sleep(2000);
+
+      if (
+        newPosition[0] === finishPosition[0] &&
+        newPosition[1] === finishPosition[1]
+      ) {
+        alert("You won!");
+      }
     }
   };
 
@@ -104,13 +121,19 @@ export default function Level() {
           return (
             <span
               style={{
-                backgroundColor: !currentInstruction
-                  ? "white"
-                  : currentInstruction === instructionIndex
-                  ? "green"
-                  : currentInstruction > instructionIndex
-                  ? "black"
-                  : "white",
+                backgroundColor:
+                  currentInstruction === instructionIndex
+                    ? "green"
+                    : currentInstruction > instructionIndex
+                    ? "black"
+                    : "white",
+              }}
+              onClick={() => {
+                setInstructions(
+                  instructions
+                    .slice(0, instructionIndex)
+                    .concat(instructions.slice(instructionIndex + 1))
+                );
               }}
             >
               {instruction.symbol}
@@ -176,8 +199,13 @@ export default function Level() {
       </Head>
       <h1>Level {levelId}</h1>
       <h2>Instructions</h2>
-      <span onClick={() => play()}>Play</span>
+      <span style={{ fontSize: "xx-large" }} onClick={() => play()}>
+        ▶️
+      </span>
 
+      <span style={{ fontSize: "xx-large" }} onClick={() => reset()}>
+        🔄
+      </span>
       {displayInstructions(instructions)}
       <hr />
       {constructLevel(levelData)}
