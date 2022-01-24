@@ -59,4 +59,18 @@ export const allLevels = [
     ],
     finishPosition: [5, 6],
   },
+  {
+    maze: [
+      [FREE, FREE, FREE, FREE, WALL, FREE, FREE],
+      [FREE, WALL, WALL, FREE, WALL, FREE, WALL],
+      [WALL, FREE, WALL, FREE, FREE, FREE, FREE],
+      [WALL, WALL, FREE, FREE, WALL, WALL, FREE],
+      [FREE, FREE, FREE, WALL, FREE, FREE, FREE],
+      [WALL, FREE, WALL, FREE, FREE, WALL, WALL],
+      [FREE, WALL, FREE, FREE, WALL, FREE, FREE],
+      [FREE, WALL, FREE, WALL, FREE, FREE, WALL],
+      [FREE, WALL, FREE, FREE, FREE, WALL, FREE],
+    ],
+    finishPosition: [6, 6],
+  },
 ];

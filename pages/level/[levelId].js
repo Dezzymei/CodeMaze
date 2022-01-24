@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
-import { Container } from "react-bootstrap";
+import { Container, Modal } from "react-bootstrap";
 import Confetti from "react-confetti";
 
 import { WALL, UP, DOWN, LEFT, RIGHT } from "../../gameLogic/types";
@@ -28,6 +28,14 @@ export default function Level() {
       ? allLevels[levelId - 1].finishPosition
       : [1, 1];
 
+  const [isShowingModal, setIsShowingModal] = useState(false);
+  const handleCloseModal = () => setIsShowingModal(false);
+  const showModal = () => setIsShowingModal(true);
+  const [modalContent, _setModalContent] = useState(null);
+  const setModalContent = (modalContent) => {
+    _setModalContent(modalContent);
+    showModal();
+  };
   const [instructions, _setInstructions] = useState([]);
   const instructionsRef = useRef(instructions);
   const setInstructions = (newInstructions) => {
@@ -72,12 +80,12 @@ export default function Level() {
 
   useEffect(() => {
     if (didHitWall(currentPosition)) {
-      alert("You hit a wall!");
+      setModalContent("You hit a wall!");
       restart();
     }
     if (isAtFinish(currentPosition)) {
       setDidWin(true);
-      alert("You won!");
+      setModalContent("You won!");
     }
   }, [currentPosition]);
 
@@ -108,7 +116,7 @@ export default function Level() {
       switch (currentInstruction.direction) {
         case UP:
           if (newPosition[1] === 0) {
-            alert("Hit the top!");
+            setModalContent("Hit the top!");
             isPlaying = restart();
           } else {
             newPosition = [newPosition[0], newPosition[1] - 1];
@@ -117,7 +125,7 @@ export default function Level() {
           break;
         case DOWN:
           if (newPosition[1] === levelData.length - 1) {
-            alert("Hit the bottom!");
+            setModalContent("Hit the bottom!");
             isPlaying = restart();
           } else {
             newPosition = [newPosition[0], newPosition[1] + 1];
@@ -126,7 +134,7 @@ export default function Level() {
           break;
         case RIGHT:
           if (newPosition[0] === levelData[0].length - 1) {
-            alert("Hit the right side!");
+            setModalContent("Hit the right side!");
             isPlaying = restart();
           } else {
             newPosition = [newPosition[0] + 1, newPosition[1]];
@@ -135,7 +143,7 @@ export default function Level() {
           break;
         case LEFT:
           if (newPosition[0] === 0) {
-            alert("Hit the left side!");
+            setModalContent("Hit the left side!");
             isPlaying = restart();
           } else {
             newPosition = [newPosition[0] - 1, newPosition[1]];
@@ -283,6 +291,9 @@ export default function Level() {
         <title>Code Maze | Level {levelId}</title>
       </Head>
       <Container>
+        <Modal show={isShowingModal} onHide={handleCloseModal}>
+          <Modal.Body>{modalContent}</Modal.Body>
+        </Modal>
         <h1>Level {levelId}</h1>
         <span
           style={{ fontSize: "xx-large" }}
