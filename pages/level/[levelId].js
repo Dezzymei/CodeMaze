@@ -1,13 +1,14 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
+import { Container } from "react-bootstrap";
 
 import { WALL, UP, DOWN, LEFT, RIGHT } from "../../gameLogic/types";
 
 import { allLevels } from "../../gameLogic/levelData";
 
 const cellWidth = 50;
-const delay = 1000;
+const delay = 700;
 
 const sleep = (t) => new Promise((s) => setTimeout(s, t));
 
@@ -64,6 +65,11 @@ export default function Level() {
         case "ArrowDown":
           newInstruction = DOWN;
           break;
+        case "Enter":
+          playRef.current();
+          break;
+        default:
+          break;
       }
       const newInstructionItem = possibleInstructions.find(
         (instruction) => instruction.direction === newInstruction
@@ -80,7 +86,7 @@ export default function Level() {
     setCurrentInstructionIndex(-1);
   };
 
-  const play = async () => {
+  const _play = async () => {
     setIsPlaying(true);
     let newPosition = currentPosition;
     let isPlaying = true;
@@ -102,7 +108,7 @@ export default function Level() {
           }
           break;
         case DOWN:
-          if (newPosition[1] === levelData[0].length - 1) {
+          if (newPosition[1] === levelData.length - 1) {
             alert("Hit the bottom!");
             isPlaying = restart();
           } else {
@@ -111,7 +117,7 @@ export default function Level() {
           }
           break;
         case RIGHT:
-          if (newPosition[0] === levelData.length - 1) {
+          if (newPosition[0] === levelData[0].length - 1) {
             alert("Hit the right side!");
             isPlaying = restart();
           } else {
@@ -138,6 +144,9 @@ export default function Level() {
     }
     setIsPlaying(false);
   };
+
+  const playRef = useRef();
+  playRef.current = _play;
 
   const didHitWall = (position) => {
     return levelData[position[1]][position[0]] === WALL;
@@ -244,6 +253,9 @@ export default function Level() {
                           xIndex === currentPosition[0] &&
                           yIndex === currentPosition[1]
                             ? "green"
+                            : xIndex === finishPosition[0] &&
+                              yIndex === finishPosition[1]
+                            ? "lightgreen"
                             : cell === WALL
                             ? "red"
                             : "white",
@@ -273,40 +285,42 @@ export default function Level() {
       <Head>
         <title>Code Maze | Level {levelId}</title>
       </Head>
-      <h1>Level {levelId}</h1>
-      <span
-        style={{ fontSize: "xx-large" }}
-        className={isPlaying ? "disabled" : " link"}
-        onClick={() => play()}
-      >
-        ▶️
-      </span>
+      <Container>
+        <h1>Level {levelId}</h1>
+        <span
+          style={{ fontSize: "xx-large" }}
+          className={isPlaying ? "disabled" : " link"}
+          onClick={() => _play()}
+        >
+          ▶️
+        </span>
 
-      <span style={{ fontSize: "xx-large" }} onClick={() => reset()}>
-        🔄
-      </span>
-      {displayInstructions(instructions)}
-      <hr />
-      {constructLevel(levelData)}
-      <hr />
-      {displayPossibleInstructions(possibleInstructions)}
-      <hr />
-      {didWin && (
-        <h1 style={{ textAlign: "center" }}>
-          <a href={`/level/${parseInt(levelId) + 1}`}>Next Level!</a>
-        </h1>
-      )}
+        <span style={{ fontSize: "xx-large" }} onClick={() => reset()}>
+          🔄
+        </span>
+        {displayInstructions(instructions)}
+        <hr />
+        {constructLevel(levelData)}
+        <hr />
+        {displayPossibleInstructions(possibleInstructions)}
+        <hr />
+        {didWin && (
+          <h1 style={{ textAlign: "center" }}>
+            <a href={`/level/${parseInt(levelId) + 1}`}>Next Level!</a>
+          </h1>
+        )}
 
-      <style jsx>{`
-        .disabled {
-          opacity: 0.4;
-          grayscale: true;
-        }
+        <style jsx>{`
+          .disabled {
+            opacity: 0.4;
+            grayscale: true;
+          }
 
-        .link {
-          cursor: pointer;
-        }
-      `}</style>
+          .link {
+            cursor: pointer;
+          }
+        `}</style>
+      </Container>
     </>
   );
 }
