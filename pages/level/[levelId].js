@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import { Container } from "react-bootstrap";
+import Confetti from "react-confetti";
 
 import { WALL, UP, DOWN, LEFT, RIGHT } from "../../gameLogic/types";
 
@@ -303,6 +304,7 @@ export default function Level() {
         {didWin && (
           <h1 style={{ textAlign: "center" }}>
             <a href={`/level/${parseInt(levelId) + 1}`}>Next Level!</a>
+            <Confetti />
           </h1>
         )}
 
